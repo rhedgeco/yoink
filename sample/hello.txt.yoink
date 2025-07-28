@@ -1,0 +1,3 @@
+[target]
+style = "bytes"
+path = "relative-path/hello.txt"
