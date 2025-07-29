@@ -39,6 +39,19 @@ impl Bytes {
             return;
         };
 
+        let Some(parent) = self.path.parent() else {
+            eprintln!("Could not get parent of '{}'", self.path.display());
+            return;
+        };
+
+        if let Err(err) = fs::create_dir_all(parent) {
+            eprintln!(
+                "Failed to create parents directories for '{}': {err}",
+                self.path.display()
+            );
+            return;
+        };
+
         let mut target = match File::options().create(true).write(true).open(&self.path) {
             Ok(file) => file,
             Err(err) => {
