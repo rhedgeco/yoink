@@ -29,10 +29,19 @@ fn main() {
     // parse command line arguments
     let cli = Cli::parse();
 
+    // build the path into an absolute path
+    let absolute = match cli.path.canonicalize() {
+        Ok(absolute) => absolute,
+        Err(err) => {
+            eprintln!("Failed to read path '{}': {err}", cli.path.display());
+            return;
+        }
+    };
+
     // dispatch yoink based on chosen command
     // if no command was chosen, default to the 'pull' command
     match cli.command {
-        None | Some(Command::Pull) => yoink::pull(cli.path, cli.recursive),
-        Some(Command::Push) => yoink::push(cli.path, cli.recursive),
+        None | Some(Command::Pull) => yoink::pull(absolute, cli.recursive),
+        Some(Command::Push) => yoink::push(absolute, cli.recursive),
     }
 }

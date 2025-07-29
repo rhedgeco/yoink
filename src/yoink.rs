@@ -19,6 +19,9 @@ pub fn push(path: impl AsRef<Path>, recursive: bool) {
 }
 
 fn pull_file(path: &Path) {
+    debug_assert!(path.is_file());
+    debug_assert!(path.is_absolute());
+
     let Some(config) = load_config(path) else {
         return;
     };
@@ -59,6 +62,9 @@ fn pull_file(path: &Path) {
 }
 
 fn push_file(path: &Path) {
+    debug_assert!(path.is_dir());
+    debug_assert!(path.is_absolute());
+
     let Some(config) = load_config(path) else {
         return;
     };
@@ -128,6 +134,8 @@ fn iterate_yoinkfiles(path: &Path, recursive: bool, f: &impl Fn(&Path)) {
 }
 
 fn dispatch_file_or_dir(path: &Path, file: impl FnOnce(), dir: impl FnOnce()) {
+    debug_assert!(path.is_absolute());
+
     if !path.exists() {
         eprintln!("'{}' does not exist", path.display());
         return;
