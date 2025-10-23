@@ -38,6 +38,9 @@ pub fn yoink_file(path: impl AsRef<Path>) -> anyhow::Result<()> {
     let target_path = path.with_extension("");
     fs::write(target_path, bytes)?;
 
+    // display the yoinked path to the user
+    println!("YOINKED: '{}'", path.display());
+
     Ok(())
 }
 
