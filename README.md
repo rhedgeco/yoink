@@ -1,3 +1,3 @@
 # yoink
 
-a tool for pulling and pushing various file information
+a tool for pulling and formatting various files information
