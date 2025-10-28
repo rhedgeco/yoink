@@ -1,17 +1,27 @@
-use std::{fs, io, path::Path};
+use std::{fs, io, path::PathBuf};
 
 use anyhow::anyhow;
+use serde::{Deserialize, Serialize};
 
-pub fn yoink(path: impl AsRef<Path>, mut write: impl io::Write) -> anyhow::Result<()> {
-    let path = path.as_ref();
+use super::Runner;
 
-    // read the bytes directly from the target path
-    let bytes = fs::read(path).map_err(|err| {
-        let path_display = path.display();
-        anyhow!("'{path_display}': {err}")
-    })?;
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BytesConfig {
+    path: PathBuf,
+}
 
-    // then write the bytes directly
-    write.write(&bytes)?;
-    Ok(())
+impl Runner for BytesConfig {
+    fn yoink(&self, mut target: impl io::Write) -> anyhow::Result<()> {
+        let path = &self.path;
+
+        // read the bytes directly from the target path
+        let bytes = fs::read(path).map_err(|err| {
+            let path_display = path.display();
+            anyhow!("'{path_display}': {err}")
+        })?;
+
+        // then write the bytes to the target directly
+        target.write(&bytes)?;
+        Ok(())
+    }
 }

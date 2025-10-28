@@ -1,10 +1,15 @@
-use std::{ffi::OsStr, fs, path::Path};
+use std::{ffi::OsStr, fs, io, path::Path};
 
 use anyhow::bail;
 
-use crate::config::{Config, Style};
+use crate::config::Config;
 
 pub mod bytes;
+pub mod dconf;
+
+pub trait Runner {
+    fn yoink(&self, target: impl io::Write) -> anyhow::Result<()>;
+}
 
 pub fn yoink_file(path: impl AsRef<Path>) -> anyhow::Result<()> {
     let path = path.as_ref();
@@ -25,14 +30,12 @@ pub fn yoink_file(path: impl AsRef<Path>) -> anyhow::Result<()> {
     // this is so that different yoink styles can use relative paths
     std::env::set_current_dir(parent_dir)?;
 
-    // then yoink the bytes using the correct style
+    // then yoink the bytes
     let mut bytes = Vec::new();
-    match config.target.style {
-        Style::Bytes { path } => bytes::yoink(path, &mut bytes)?,
-    };
+    config.target.runner.yoink(&mut bytes)?;
 
     // reset the working directory after finished writing
-    std::env::set_current_dir(working_dir)?;
+    std::env::set_current_dir(working_dir).expect("original directory is valid");
 
     // write the content to the target file
     let target_path = path.with_extension("");

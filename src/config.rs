@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-
 use serde::{Deserialize, Serialize};
+
+use crate::runner::{Runner, bytes::BytesConfig, dconf::DconfConfig};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -10,11 +10,21 @@ pub struct Config {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Target {
     #[serde(flatten)]
-    pub style: Style,
+    pub runner: RunnerConfig,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum Style {
-    Bytes { path: PathBuf },
+pub enum RunnerConfig {
+    Bytes(BytesConfig),
+    Dconf(DconfConfig),
+}
+
+impl Runner for RunnerConfig {
+    fn yoink(&self, target: impl std::io::Write) -> anyhow::Result<()> {
+        match self {
+            RunnerConfig::Bytes(config) => config.yoink(target),
+            RunnerConfig::Dconf(config) => config.yoink(target),
+        }
+    }
 }
