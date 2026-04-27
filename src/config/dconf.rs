@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    io,
+    io::Write,
     path::{Path, PathBuf},
 };
 
@@ -8,25 +8,33 @@ use anyhow::anyhow;
 use gvdb::read::File;
 use serde::{Deserialize, Serialize};
 
-use super::Runner;
+use crate::Yoink;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DconfConfig {
     path: PathBuf,
     #[serde(default)]
+    include: Vec<String>,
+    #[serde(default)]
     exclude: Vec<String>,
 }
 
-impl Runner for DconfConfig {
-    fn yoink(&self, mut target: impl io::Write) -> anyhow::Result<()> {
+impl Yoink for DconfConfig {
+    fn pull(&mut self, _: Option<&[u8]>) -> anyhow::Result<Box<[u8]>> {
         let path = &self.path;
 
-        let file = File::from_file(path).map_err(path_err(path))?;
+        let file = File::from_file(path)?;
         let table = file.hash_table().map_err(path_err(path))?;
 
+        let mut bytes = Vec::new();
         for key in table.keys() {
             // convert the key to a string
             let key = key.map_err(path_err(path))?.to_string();
+
+            // exclude any keys that dont conatin an included prefix
+            if !self.include.iter().any(|str| key.starts_with(str)) {
+                continue;
+            }
 
             // exclude any keys that contain an excluded prefix
             if self.exclude.iter().any(|str| key.starts_with(str)) {
@@ -40,10 +48,10 @@ impl Runner for DconfConfig {
             };
 
             // write the key value line to the target
-            writeln!(target, "{key} = {value}")?;
+            writeln!(bytes, "{key} = {value}")?;
         }
 
-        Ok(())
+        Ok(bytes.into_boxed_slice())
     }
 }
 
