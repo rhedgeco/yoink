@@ -16,7 +16,10 @@ pub fn pull(path: impl AsRef<Path>, recursive: bool) -> anyhow::Result<()> {
     }
 
     if path.is_dir() {
-        return pull_dir(path, recursive);
+        if pull_dir(path, recursive)? == 0 {
+            println!("no '*.yoink' files found.");
+        }
+        return Ok(());
     }
 
     bail!(
@@ -58,10 +61,11 @@ fn pull_file(path: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn pull_dir(path: &Path, recursive: bool) -> anyhow::Result<()> {
+fn pull_dir(path: &Path, recursive: bool) -> anyhow::Result<usize> {
     assert!(path.is_dir());
 
     // try to pull every file in the directory
+    let mut pull_count = 0;
     for entry in fs::read_dir(path)? {
         // try to read the path from the current entry
         let sub_path = match entry {
@@ -74,17 +78,19 @@ fn pull_dir(path: &Path, recursive: bool) -> anyhow::Result<()> {
 
         // if the path is a directory and recursive is true, try to pull it
         if sub_path.is_dir() && recursive {
-            let Err(err) = pull_dir(&sub_path, recursive) else {
-                continue;
-            };
-
-            eprintln!("Failed to pull dir '{}': {err}", sub_path.display());
+            match pull_dir(&sub_path, recursive) {
+                Ok(count) => pull_count += count,
+                Err(err) => {
+                    eprintln!("Failed to pull dir '{}': {err}", sub_path.display());
+                }
+            }
             continue;
         }
 
         // if the path is a file with a yoink extension, try to pull it
         if sub_path.is_file() && utils::has_yoink_extension(&sub_path) {
             let Err(err) = pull_file(&sub_path) else {
+                pull_count += 1;
                 continue;
             };
 
@@ -93,7 +99,7 @@ fn pull_dir(path: &Path, recursive: bool) -> anyhow::Result<()> {
         }
     }
 
-    Ok(())
+    Ok(pull_count)
 }
 
 mod utils {
