@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::runner::{Runner, bytes::BytesConfig, dconf::DconfConfig};
+use crate::Yoink;
+
+mod bytes;
+mod dconf;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -8,23 +11,17 @@ pub struct Config {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Target {
-    #[serde(flatten)]
-    pub runner: RunnerConfig,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum RunnerConfig {
-    Bytes(BytesConfig),
-    Dconf(DconfConfig),
+pub enum Target {
+    Bytes(bytes::BytesConfig),
+    Dconf(dconf::DconfConfig),
 }
 
-impl Runner for RunnerConfig {
-    fn yoink(&self, target: impl std::io::Write) -> anyhow::Result<()> {
+impl Yoink for Target {
+    fn pull(&mut self, store: Option<&[u8]>) -> anyhow::Result<Box<[u8]>> {
         match self {
-            RunnerConfig::Bytes(config) => config.yoink(target),
-            RunnerConfig::Dconf(config) => config.yoink(target),
+            Target::Bytes(config) => config.pull(store),
+            Target::Dconf(config) => config.pull(store),
         }
     }
 }
