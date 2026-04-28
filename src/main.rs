@@ -11,8 +11,7 @@ pub struct Cli {
     #[arg(short, long)]
     pub recursive: bool,
 
-    /// Target file or directory to be yoinked
-    #[arg(short, long)]
+    /// Target file or directory to be yoinked (Defaults to current dir)
     pub target: Option<PathBuf>,
 }
 
