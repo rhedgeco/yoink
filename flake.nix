@@ -10,8 +10,9 @@
     forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
     pkgsFor = nixpkgs.legacyPackages;
   in {
-    packages = forAllSystems (system: {
-      default = pkgsFor.${system}.callPackage ./. {};
+    packages = forAllSystems (system: rec {
+      yoink = pkgsFor.${system}.callPackage ./. {};
+      default = yoink;
     });
   };
 }

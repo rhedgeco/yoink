@@ -4,6 +4,7 @@ use crate::Yoink;
 
 mod bytes;
 mod dconf;
+mod toml;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -15,6 +16,7 @@ pub struct Config {
 pub enum Target {
     Bytes(bytes::BytesConfig),
     Dconf(dconf::DconfConfig),
+    Toml(toml::TomlConfig),
 }
 
 impl Yoink for Target {
@@ -22,6 +24,7 @@ impl Yoink for Target {
         match self {
             Target::Bytes(config) => config.pull(store),
             Target::Dconf(config) => config.pull(store),
+            Target::Toml(config) => config.pull(store),
         }
     }
 }
