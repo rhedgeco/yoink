@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use crate::Yoink;
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename = "snake_case")]
+#[serde(rename_all = "snake_case")]
 enum KeyAction {
     Exclude,
 }
@@ -25,9 +25,10 @@ enum ActionEntry {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct JsonConfig {
     path: PathBuf,
-    #[serde(default, rename = "action")]
+    #[serde(default)]
     actions: HashMap<String, ActionEntry>,
     indent: Option<u16>,
 }
@@ -69,6 +70,9 @@ fn modify_json(value: &mut JsonValue, actions: &HashMap<String, ActionEntry>) {
             }
             ActionEntry::Map(actions) => {
                 modify_json(value, actions);
+                if value.is_object() && value.is_empty() {
+                    let _ = object.remove(key);
+                }
             }
         }
     }

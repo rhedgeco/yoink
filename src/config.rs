@@ -9,11 +9,12 @@ mod toml;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
+    #[serde(flatten)]
     pub target: Target,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "target", rename_all = "snake_case")]
 pub enum Target {
     Bytes(bytes::BytesConfig),
     Dconf(dconf::DconfConfig),
