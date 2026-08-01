@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    fs,
+    fs, io,
     path::{Path, PathBuf},
 };
 
@@ -28,7 +28,13 @@ impl Yoink for TomlConfig {
         // collect all override tables
         let mut overrides = Vec::with_capacity(self.overrides.len());
         for path in self.overrides.iter().map(PathBuf::as_path) {
-            let content = fs::read_to_string(path).map_err(path_err(path))?;
+            let content = match fs::read_to_string(path) {
+                Ok(content) => content,
+                // if the file is not found, we can just skip it
+                Err(err) if err.kind() == io::ErrorKind::NotFound => continue,
+                Err(err) => return Err(path_err(path)(err)),
+            };
+
             let table: Table = toml::from_str(&content).map_err(path_err(path))?;
             overrides.push(table);
         }
