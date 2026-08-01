@@ -4,6 +4,7 @@ use crate::Yoink;
 
 mod bytes;
 mod dconf;
+mod json;
 mod toml;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -17,6 +18,7 @@ pub enum Target {
     Bytes(bytes::BytesConfig),
     Dconf(dconf::DconfConfig),
     Toml(toml::TomlConfig),
+    Json(json::JsonConfig),
 }
 
 impl Yoink for Target {
@@ -25,6 +27,7 @@ impl Yoink for Target {
             Target::Bytes(config) => config.pull(store),
             Target::Dconf(config) => config.pull(store),
             Target::Toml(config) => config.pull(store),
+            Target::Json(config) => config.pull(store),
         }
     }
 }
