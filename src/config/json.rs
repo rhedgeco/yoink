@@ -45,7 +45,7 @@ impl Yoink for JsonConfig {
         modify_json(&mut value, &self.actions);
 
         // render the json and output it
-        let spaces = self.indent.unwrap_or(4);
+        let spaces = self.indent.unwrap_or(2);
         Ok(value.pretty(spaces).into_bytes().into_boxed_slice())
     }
 }
