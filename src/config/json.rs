@@ -27,7 +27,7 @@ enum ActionEntry {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JsonConfig {
     path: PathBuf,
-    #[serde(rename = "action")]
+    #[serde(default, rename = "action")]
     actions: HashMap<String, ActionEntry>,
     indent: Option<u16>,
 }
